@@ -22,7 +22,7 @@ description: "Task list template for feature implementation"
 ## Path Conventions
 
 - **Clean Architecture obrigatoria**:
-  - `src/NomeProjeto.Api`
+  - `src/NomeProjeto.Worker`
   - `src/NomeProjeto.Domain`
   - `src/NomeProjeto.Application`
   - `src/NomeProjeto.Infra`
@@ -68,7 +68,7 @@ Examples of foundational tasks (adjust based on your project):
 
 - [ ] T004 Setup database schema and migrations framework
 - [ ] T005 [P] Implement authentication/authorization framework
-- [ ] T006 [P] Setup API routing and middleware structure
+- [ ] T006 [P] Setup worker processing pipeline and host middleware structure
 - [ ] T007 Create base models/entities that all stories depend on
 - [ ] T008 Configure error handling and logging infrastructure
 - [ ] T009 Setup environment configuration management
@@ -95,7 +95,7 @@ Examples of foundational tasks (adjust based on your project):
 - [ ] T012 [P] [US1] Create [Entity1] model in src/models/[entity1].py
 - [ ] T013 [P] [US1] Create [Entity2] model in src/models/[entity2].py
 - [ ] T014 [US1] Implement [Service] in src/services/[service].py (depends on T012, T013)
-- [ ] T015 [US1] Implement [endpoint/feature] in src/[location]/[file].py
+- [ ] T015 [US1] Implement [worker flow/feature] in src/[location]/[file].py
 - [ ] T016 [US1] Add validation and error handling
 - [ ] T017 [US1] Add logging for user story 1 operations
 
@@ -118,7 +118,7 @@ Examples of foundational tasks (adjust based on your project):
 
 - [ ] T020 [P] [US2] Create [Entity] model in src/models/[entity].py
 - [ ] T021 [US2] Implement [Service] in src/services/[service].py
-- [ ] T022 [US2] Implement [endpoint/feature] in src/[location]/[file].py
+- [ ] T022 [US2] Implement [worker flow/feature] in src/[location]/[file].py
 - [ ] T023 [US2] Integrate with User Story 1 components (if needed)
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
@@ -140,7 +140,7 @@ Examples of foundational tasks (adjust based on your project):
 
 - [ ] T026 [P] [US3] Create [Entity] model in src/models/[entity].py
 - [ ] T027 [US3] Implement [Service] in src/services/[service].py
-- [ ] T028 [US3] Implement [endpoint/feature] in src/[location]/[file].py
+- [ ] T028 [US3] Implement [worker flow/feature] in src/[location]/[file].py
 
 **Checkpoint**: All user stories should now be independently functional
 

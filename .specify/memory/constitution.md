@@ -1,9 +1,10 @@
 <!--
 Sync Impact Report
-Version change: 1.1.0 -> 1.2.0
+Version change: 1.2.0 -> 2.0.0
 Modified principles:
-- I. Contratos de API e Operacao -> I. Contratos de API e Operacao (.NET 8+ e OpenAPI normativo com UI opcional)
-- V. Qualidade de Codigo, Seguranca e Performance -> V. Qualidade de Codigo, Seguranca e Performance (governanca de segredos e criterios verificaveis)
+- I. Contratos de API e Operacao -> I. Contratos de Integracao e Operacao (worker-first)
+- V. Qualidade de Codigo, Seguranca e Performance -> V. Qualidade de Codigo, Seguranca e Performance (seguranca de interfaces operacionais)
+- Arquitetura de Solucao e Estrutura de Projetos (Api -> Worker)
 Added sections:
 - Nenhuma
 Removed sections:
@@ -21,11 +22,10 @@ Follow-up TODOs:
 
 ## Core Principles
 
-### I. Contratos de API e Operacao
-Todos os servicos HTTP DEVE usar ASP.NET Core Minimal APIs em runtime .NET 8+ como padrao preferencial,
-seguir convencoes REST, expor versionamento de API e publicar contrato OpenAPI.
-Swagger UI, Scalar ou ferramenta equivalente DEVE ser tratado como mecanismo de visualizacao,
-nao como substituto do contrato OpenAPI.
+### I. Contratos de Integracao e Operacao
+Todos os workers em .NET 8+ DEVE definir contratos explicitos de integracao para entrada e saida
+(mensageria, arquivos, agendadores ou HTTP quando aplicavel).
+Quando houver superficie HTTP operacional, contrato OpenAPI e versionamento DEVE ser aplicado.
 Cada servico DEVE expor Health Checks e DEVE aplicar timeout padrao maximo de 30 segundos
 em operacoes externas. Toda operacao assincrona DEVE receber e propagar CancellationToken.
 Justificativa: contratos claros e comportamento operacional previsivel reduzem regressao,
@@ -54,9 +54,9 @@ Justificativa: sem telemetria padronizada nao ha operacao segura nem melhoria co
 
 ### V. Qualidade de Codigo, Seguranca e Performance
 Codigo DEVE aplicar SOLID e Clean Architecture, mantendo responsabilidades pequenas e
-separacao entre transporte, dominio e infraestrutura. Logica de negocio em controllers/endpoints
+separacao entre transporte, dominio e infraestrutura. Logica de negocio na camada de entrada
 e proibida. Inputs DEVE ser validados com FluentValidation ou estrategia equivalente.
-Autenticacao JWT e obrigatoria para recursos protegidos.
+Interfaces operacionais protegidas DEVE aplicar autenticacao e autorizacao conforme padrao corporativo.
 Operacoes de IO DEVE ser assincronas,
 com minimizacao de alocacao e serializacao desnecessaria. Unit tests sao obrigatorios;
 integration tests sao recomendados para fluxos criticos e contratos externos.
@@ -74,14 +74,14 @@ HPA DEVE ser configurado para cargas criticas e servicos com variacao de through
 A solucao DEVE seguir Clean Architecture com separacao explicita por projetos.
 A estrutura padrao obrigatoria da raiz do repositorio e:
 
-- src/NomeProjeto.Api
+- src/NomeProjeto.Worker
 - src/NomeProjeto.Domain
 - src/NomeProjeto.Application
 - src/NomeProjeto.Infra
 - tests/NomeProjeto.Tests
 
 Regras de dependencia entre camadas:
-- NomeProjeto.Api DEVE depender de NomeProjeto.Application e PODE referenciar NomeProjeto.Infra somente para composition root (registracao de DI e wiring de adaptadores), sem conter logica de negocio.
+- NomeProjeto.Worker DEVE depender de NomeProjeto.Application e PODE referenciar NomeProjeto.Infra somente para composition root (registracao de DI e wiring de adaptadores), sem conter logica de negocio.
 - NomeProjeto.Application DEVE conter casos de uso, contratos e regras de orquestracao da aplicacao.
 - NomeProjeto.Domain DEVE conter regras de negocio centrais e nao DEVE depender de infraestrutura.
 - NomeProjeto.Infra DEVE implementar adaptadores externos (banco, mensageria, cache, clientes externos) e nao DEVE conter regra de negocio de dominio.
@@ -96,11 +96,11 @@ Excecoes arquiteturais DEVE conter justificativa tecnica, risco assumido e plano
 
 Proibicoes nao negociaveis:
 - Nunca utilizar AutoMapper.
-- Nunca implementar logica de negocio em controllers/endpoints.
+- Nunca implementar logica de negocio na camada de entrada (worker host, endpoints operacionais, gatilhos).
 - Nunca utilizar metodos sincronos para IO.
 - Nunca ignorar CancellationToken em operacoes assincronas.
 - Nunca criar servicos com multiplas responsabilidades.
-- Nunca acessar banco diretamente da camada de API.
+- Nunca acessar banco diretamente da camada de entrada.
 
 ## Governance
 
@@ -116,7 +116,7 @@ Politica de versionamento da constituicao:
 Revisao de compliance:
 - Todo plano DEVE registrar Constitution Check com evidencias verificaveis.
 - Todo conjunto de tarefas DEVE refletir testes obrigatorios, observabilidade e seguranca.
-- Toda PR DEVE incluir checklist de aderencia com, no minimo: runtime .NET 8+, API versionada, contrato OpenAPI publicado, timeout/cancellation token, observabilidade (logs+traces+metricas), validacao de input, politica de segredos e separacao de camadas.
+- Toda PR DEVE incluir checklist de aderencia com, no minimo: runtime .NET 8+, contratos de integracao documentados, timeout/cancellation token, observabilidade (logs+traces+metricas), validacao de input, politica de segredos e separacao de camadas.
 - Toda PR DEVE registrar desvios aprovados explicitamente.
 
-**Version**: 1.2.0 | **Ratified**: 2026-05-19 | **Last Amended**: 2026-05-20
+**Version**: 2.0.0 | **Ratified**: 2026-05-19 | **Last Amended**: 2026-05-20

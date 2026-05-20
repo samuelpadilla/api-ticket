@@ -40,15 +40,15 @@
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-- API e Operacao: runtime .NET 8+, API versionada, contrato OpenAPI, Health Checks, timeout <= 30s, CancellationToken em operacoes assincronas.
+- Integracao e Operacao: runtime .NET 8+, contratos de integracao documentados, Health Checks, timeout <= 30s, CancellationToken em operacoes assincronas.
 - Persistencia: SQL Server, consultas explicitas, sem SELECT *, paginacao quando aplicavel, mitigacao de N+1.
 - Mensageria: Azure Service Bus, DLQ ativa, consumidores idempotentes, retries com Polly, estrategia de Outbox.
 - Observabilidade: OpenTelemetry, logs estruturados, CorrelationId, tracing distribuido e metricas.
 - Plataforma: workload stateless, readiness/liveness probes, requests/limits declarados, avaliacao de HPA.
-- Estrutura de Solucao: padrao Clean Architecture com src/NomeProjeto.Api, src/NomeProjeto.Domain, src/NomeProjeto.Application, src/NomeProjeto.Infra e tests/NomeProjeto.Tests.
-- Qualidade e Seguranca: sem AutoMapper, sem logica de negocio nos endpoints, JWT para recursos protegidos, validacao de entrada e higienizacao de logs sensiveis.
+- Estrutura de Solucao: padrao Clean Architecture com src/NomeProjeto.Worker, src/NomeProjeto.Domain, src/NomeProjeto.Application, src/NomeProjeto.Infra e tests/NomeProjeto.Tests.
+- Qualidade e Seguranca: sem AutoMapper, sem logica de negocio na camada de entrada, autenticacao/autorizacao para interfaces protegidas, validacao de entrada e higienizacao de logs sensiveis.
 - Testes: cobertura de unit tests obrigatoria e plano de integration tests para fluxos criticos.
-- Evidencia de PR: checklist minimo com runtime .NET 8+, API versionada, OpenAPI, timeout/cancellation token, observabilidade, validacao de input, politica de segredos e separacao de camadas.
+- Evidencia de PR: checklist minimo com runtime .NET 8+, contratos de integracao documentados, timeout/cancellation token, observabilidade, validacao de input, politica de segredos e separacao de camadas.
 
 ## Project Structure
 
@@ -68,7 +68,7 @@ specs/[###-feature]/
 
 ```text
 src/
-├── NomeProjeto.Api/
+├── NomeProjeto.Worker/
 ├── NomeProjeto.Domain/
 ├── NomeProjeto.Application/
 └── NomeProjeto.Infra/

@@ -111,7 +111,7 @@
 - Definir estrategia de persistencia explicita e paginacao para leituras listaveis quando aplicavel.
 - Definir estrategia de mensageria confiavel para fluxos assincronos quando aplicavel.
 - Definir estrategia de deploy/operacao em ambiente containerizado quando aplicavel.
-- Definir separacao em Clean Architecture quando houver implementacao backend, contemplando Api, Domain, Application, Infra e projeto de testes.
+- Definir separacao em Clean Architecture quando houver implementacao backend, contemplando Worker, Domain, Application, Infra e projeto de testes.
 
 ### Key Entities *(include if feature involves data)*
 
