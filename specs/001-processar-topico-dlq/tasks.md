@@ -50,7 +50,6 @@
 - [ ] T012 Definir politicas de retry com Polly e timeout global de operacoes externas em `src/TicketProcessor.Infra/Resilience/RetryPolicies.cs`, `src/TicketProcessor.Infra/Resilience/TimeoutPolicies.cs`
 - [ ] T013 Implementar mecanismo de consistencia de publicacao (Outbox ou equivalente) para fluxos de escrita e reenvio em `src/TicketProcessor.Application/Abstractions/Messaging/IOutboxDispatcher.cs`, `src/TicketProcessor.Infra/Messaging/OutboxDispatcher.cs`, `src/TicketProcessor.Infra/Persistence/DapperOutboxRepository.cs`
 - [ ] T047 Implementar configuracao de concorrencia por instancia e estrategia de backpressure por lag em `src/TicketProcessor.Application/Configuration/WorkerProcessingOptions.cs`, `src/TicketProcessor.Worker/Workers/TopicConsumerWorker.cs`
-- [ ] T048 Criar teste de integracao para validar concorrencia configuravel e acionamento de backpressure quando lag exceder 1.000 mensagens em `tests/TicketProcessor.Tests/Integration/Us1BackpressureAndConcurrencyTests.cs`
 
 **Checkpoint**: Fundacao pronta e aderente a constituicao - historias de usuario podem ser implementadas em paralelo.
 
@@ -67,6 +66,7 @@
 - [ ] T014 [P] [US1] Criar unit tests de validacao e idempotencia em `tests/TicketProcessor.Tests/Unit/Application/MessageProcessingServiceTests.cs`
 - [ ] T015 [P] [US1] Criar integration test de consumo e persistencia no SQL em `tests/TicketProcessor.Tests/Integration/Us1ConsumeAndPersistTests.cs`
 - [ ] T016 [P] [US1] Criar contract test da mensagem de topico com base em `contracts/topic-message-contract.md` em `tests/TicketProcessor.Tests/Contract/TopicMessageContractTests.cs`
+- [ ] T048 [US1] Criar teste de integracao para validar concorrencia configuravel e acionamento de backpressure quando lag exceder 1.000 mensagens em `tests/TicketProcessor.Tests/Integration/Us1BackpressureAndConcurrencyTests.cs`
 
 ### Implementation for User Story 1
 
@@ -173,12 +173,14 @@
 - T003 pode rodar em paralelo com T001/T002.
 - T005, T006, T008 e T009 podem rodar em paralelo dentro da Foundational.
 - T047 e T048 podem rodar em paralelo com tarefas da US1 apos conclusao das configuracoes base da Foundational.
+- T048 depende de T047 e T021 para validar concorrencia/configuracao no fluxo real de consumo.
 - Em US1: T014, T015, T016 e T017 podem iniciar em paralelo.
 - Em US2: T023, T024 e T025 podem iniciar em paralelo.
 - Em US3: T030, T031, T032 e T033 podem iniciar em paralelo.
 - T039 e T040 podem rodar em paralelo na fase de Polish.
 - T043, T044 e T045 podem rodar em paralelo na fase de Polish.
 - T049 e T050 podem rodar em paralelo com T046 na fase de Polish.
+- T050 depende de T049 e da instrumentacao consolidada em T046 para afericao consistente da janela movel de 24h.
 
 ---
 
