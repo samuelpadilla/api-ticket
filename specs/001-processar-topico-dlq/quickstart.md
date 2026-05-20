@@ -9,7 +9,7 @@
 
 ## 2. Estrutura esperada da solucao
 
-- src/TicketProcessor.Api
+- src/TicketProcessor.Worker
 - src/TicketProcessor.Domain
 - src/TicketProcessor.Application
 - src/TicketProcessor.Infra

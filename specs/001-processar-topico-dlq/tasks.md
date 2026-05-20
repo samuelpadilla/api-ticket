@@ -40,12 +40,12 @@
 **⚠️ CRITICAL**: Nenhuma tarefa de US pode iniciar antes desta fase.
 
 - [ ] T004 Criar contratos de configuracao e options para Service Bus/SQL/Retry em `src/TicketProcessor.Application/Configuration/ServiceBusOptions.cs`, `src/TicketProcessor.Application/Configuration/SqlOptions.cs`, `src/TicketProcessor.Application/Configuration/RetryOptions.cs`
-- [ ] T005 [P] Implementar bootstrap de DI por camada em `src/TicketProcessor.Application/DependencyInjection.cs`, `src/TicketProcessor.Infra/DependencyInjection.cs`, `src/TicketProcessor.Api/DependencyInjection.cs`
-- [ ] T006 [P] Configurar OpenTelemetry, logs estruturados e correlation middleware em `src/TicketProcessor.Api/Observability/TelemetrySetup.cs`, `src/TicketProcessor.Api/Observability/CorrelationContextMiddleware.cs`
+- [ ] T005 [P] Implementar bootstrap de DI por camada em `src/TicketProcessor.Application/DependencyInjection.cs`, `src/TicketProcessor.Infra/DependencyInjection.cs`, `src/TicketProcessor.Worker/DependencyInjection.cs`
+- [ ] T006 [P] Configurar OpenTelemetry, logs estruturados e correlation middleware em `src/TicketProcessor.Worker/Observability/TelemetrySetup.cs`, `src/TicketProcessor.Worker/Observability/CorrelationContextMiddleware.cs`
 - [ ] T007 Implementar abstrações de mensageria e persistencia em `src/TicketProcessor.Application/Abstractions/Messaging/IMessageConsumer.cs`, `src/TicketProcessor.Application/Abstractions/Messaging/IDeadLetterPublisher.cs`, `src/TicketProcessor.Application/Abstractions/Persistence/IProcessingRepository.cs`
 - [ ] T008 [P] Criar infraestrutura de SQL com Dapper e fabrica de conexao em `src/TicketProcessor.Infra/Persistence/SqlConnectionFactory.cs`, `src/TicketProcessor.Infra/Persistence/DapperProcessingRepository.cs`
 - [ ] T009 [P] Criar cliente de Service Bus e processor base em `src/TicketProcessor.Infra/Messaging/ServiceBusProcessorFactory.cs`, `src/TicketProcessor.Infra/Messaging/ServiceBusTopicConsumer.cs`
-- [ ] T010 Implementar health checks e readiness/liveness em `src/TicketProcessor.Api/Health/ServiceBusHealthCheck.cs`, `src/TicketProcessor.Api/Health/SqlServerHealthCheck.cs`, `src/TicketProcessor.Api/Program.cs`
+- [ ] T010 Implementar health checks e readiness/liveness em `src/TicketProcessor.Worker/Health/ServiceBusHealthCheck.cs`, `src/TicketProcessor.Worker/Health/SqlServerHealthCheck.cs`, `src/TicketProcessor.Worker/Program.cs`
 - [ ] T011 Implementar esquema SQL inicial (Inbox + historico de processamento) em `src/TicketProcessor.Infra/Persistence/Scripts/001_init_processing.sql`
 - [ ] T012 Definir politicas de retry com Polly e timeout global de operacoes externas em `src/TicketProcessor.Infra/Resilience/RetryPolicies.cs`, `src/TicketProcessor.Infra/Resilience/TimeoutPolicies.cs`
 
@@ -71,8 +71,8 @@
 - [ ] T017 [P] [US1] Implementar validadores de payload e regras de dominio em `src/TicketProcessor.Application/Validation/TopicMessageValidator.cs`, `src/TicketProcessor.Domain/Rules/MessageSchemaRule.cs`
 - [ ] T018 [US1] Implementar caso de uso de processamento principal com CancellationToken em `src/TicketProcessor.Application/UseCases/ProcessTopicMessage/ProcessTopicMessageHandler.cs`
 - [ ] T019 [US1] Implementar escrita transacional com Inbox (idempotencia) em `src/TicketProcessor.Infra/Persistence/DapperProcessingRepository.cs`
-- [ ] T020 [US1] Implementar worker de consumo principal e ack manual em `src/TicketProcessor.Api/Workers/TopicConsumerWorker.cs`
-- [ ] T021 [US1] Adicionar metrica e logs estruturados de sucesso no fluxo de consumo em `src/TicketProcessor.Api/Observability/ProcessingMetrics.cs`, `src/TicketProcessor.Api/Workers/TopicConsumerWorker.cs`
+- [ ] T020 [US1] Implementar worker de consumo principal e ack manual em `src/TicketProcessor.Worker/Workers/TopicConsumerWorker.cs`
+- [ ] T021 [US1] Adicionar metrica e logs estruturados de sucesso no fluxo de consumo em `src/TicketProcessor.Worker/Observability/ProcessingMetrics.cs`, `src/TicketProcessor.Worker/Workers/TopicConsumerWorker.cs`
 
 **Checkpoint**: US1 funcional e testavel de forma independente.
 
@@ -94,7 +94,7 @@
 - [ ] T024 [P] [US2] Implementar modelo de falha e dead-letter no dominio em `src/TicketProcessor.Domain/Entities/DeadLetterItem.cs`, `src/TicketProcessor.Domain/Enums/ProcessingStatus.cs`
 - [ ] T025 [US2] Implementar caso de uso de tratamento de erro e decisao retry/dead-letter em `src/TicketProcessor.Application/UseCases/HandleProcessingFailure/HandleProcessingFailureHandler.cs`
 - [ ] T026 [US2] Implementar publisher de DLQ e metadados de erro em `src/TicketProcessor.Infra/Messaging/DeadLetterPublisher.cs`
-- [ ] T027 [US2] Integrar retry com Polly no worker e registrar historico de tentativas em `src/TicketProcessor.Api/Workers/TopicConsumerWorker.cs`, `src/TicketProcessor.Infra/Resilience/RetryPolicies.cs`
+- [ ] T027 [US2] Integrar retry com Polly no worker e registrar historico de tentativas em `src/TicketProcessor.Worker/Workers/TopicConsumerWorker.cs`, `src/TicketProcessor.Infra/Resilience/RetryPolicies.cs`
 - [ ] T028 [US2] Persistir motivo de falha e tentativa no historico em `src/TicketProcessor.Infra/Persistence/DapperProcessingRepository.cs`
 
 **Checkpoint**: US1 e US2 funcionais independentemente.
@@ -116,7 +116,7 @@
 
 - [ ] T031 [P] [US3] Implementar caso de uso de reprocessamento seletivo em `src/TicketProcessor.Application/UseCases/ReprocessDlqMessages/ReprocessDlqMessagesHandler.cs`
 - [ ] T032 [US3] Implementar leitor de DLQ e reenvio ao topico principal em `src/TicketProcessor.Infra/Messaging/DlqReader.cs`, `src/TicketProcessor.Infra/Messaging/TopicMessageRepublisher.cs`
-- [ ] T033 [US3] Implementar endpoint operacional interno de reprocessamento em `src/TicketProcessor.Api/Endpoints/Operational/ReprocessDlqEndpoint.cs`, `src/TicketProcessor.Api/Program.cs`
+- [ ] T033 [US3] Implementar endpoint operacional interno de reprocessamento em `src/TicketProcessor.Worker/Endpoints/Operational/ReprocessDlqEndpoint.cs`, `src/TicketProcessor.Worker/Program.cs`
 - [ ] T034 [US3] Registrar auditoria de reprocessamento e status final em `src/TicketProcessor.Infra/Persistence/DapperProcessingRepository.cs`
 
 **Checkpoint**: Todas as historias funcionais e testaveis de forma independente.
@@ -129,7 +129,7 @@
 
 - [ ] T035 [P] Atualizar guia operacional e exemplos de execucao em `specs/001-processar-topico-dlq/quickstart.md`
 - [ ] T036 [P] Ajustar configuracoes de deploy Kubernetes (readiness/liveness/resources) em `deploy/k8s/ticket-processor-deployment.yaml`
-- [ ] T037 Revisar mascaramento de dados sensiveis em logs e tratamento de excecoes em `src/TicketProcessor.Api/Observability/LogSanitizer.cs`, `src/TicketProcessor.Api/Workers/TopicConsumerWorker.cs`
+- [ ] T037 Revisar mascaramento de dados sensiveis em logs e tratamento de excecoes em `src/TicketProcessor.Worker/Observability/LogSanitizer.cs`, `src/TicketProcessor.Worker/Workers/TopicConsumerWorker.cs`
 - [ ] T038 Executar validacao fim a fim do quickstart e registrar evidencias em `specs/001-processar-topico-dlq/quickstart.md`
 - [ ] T039 [P] Definir e documentar contrato de status operacional (saude e processamento) em `specs/001-processar-topico-dlq/contracts/operational-status-contract.md`
 - [ ] T040 [P] Criar teste de performance para validar SC-001 (latencia de processamento) em `tests/TicketProcessor.Tests/Performance/Sc001ProcessingLatencyTests.cs`
