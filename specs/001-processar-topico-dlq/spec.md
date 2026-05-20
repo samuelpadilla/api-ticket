@@ -85,7 +85,7 @@ Como operador da plataforma, quero iniciar reprocessamento de mensagens da DLQ p
 
 ### Architectural Constraints
 
-- A implementacao backend DEVE seguir Clean Architecture com separacao entre Api, Application, Domain, Infra e projeto de testes.
+- A implementacao backend DEVE seguir Clean Architecture com separacao entre Worker, Application, Domain, Infra e projeto de testes.
 - O worker DEVE operar de forma assincrona e desacoplada de superficie HTTP para o fluxo principal de consumo.
 - O fluxo assincrono DEVE prever retries e DLQ para falhas de processamento.
 - A persistencia DEVE ser explicita, com consultas paginadas quando aplicavel para operacoes de leitura/listagem.

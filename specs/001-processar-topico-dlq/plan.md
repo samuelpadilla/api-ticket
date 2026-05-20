@@ -42,15 +42,15 @@ garantindo idempotencia, rastreabilidade ponta a ponta e reprocessamento operaci
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-- API e Operacao: **PASS**. Runtime .NET 8+, health checks e endpoint operacional interno versionado para reprocessamento; contrato OpenAPI publicado apenas para endpoints operacionais.
+- Integracao e Operacao: **PASS**. Runtime .NET 8+, contratos de integracao documentados para consumo/reprocessamento e health checks ativos; para eventual HTTP operacional, aplicar versionamento e OpenAPI.
 - Persistencia: **PASS**. SQL Server + Dapper com SQL explicito, sem SELECT *, com paginacao em consultas de listagem operacional.
 - Mensageria: **PASS**. Azure Service Bus com DLQ, retry com Polly, idempotencia via Inbox e trilha de correlacao.
 - Observabilidade: **PASS**. OpenTelemetry, logs estruturados, CorrelationId e metricas de consumo/erro/reprocessamento.
 - Plataforma: **PASS**. Worker stateless, readiness/liveness, requests/limits e estrategia com KEDA/HPA.
 - Estrutura de Solucao: **PASS**. Clean Architecture em projetos separados.
-- Qualidade e Seguranca: **PASS**. Sem AutoMapper, sem regra de negocio em endpoints, validacao com FluentValidation e mascaramento de dados sensiveis.
+- Qualidade e Seguranca: **PASS**. Sem AutoMapper, sem regra de negocio na camada de entrada, validacao com FluentValidation, protecao de interfaces operacionais e mascaramento de dados sensiveis.
 - Testes: **PASS**. Unit tests obrigatorios + plano de integracao para topico, persistencia e DLQ.
-- Evidencia de PR: **PASS**. Checklist minimo de aderencia sera exigido no PR da feature.
+- Evidencia de PR: **PASS**. Checklist minimo de aderencia com contratos de integracao, timeout/cancellation token, observabilidade, validacao e separacao de camadas sera exigido no PR.
 
 ## Project Structure
 
@@ -70,7 +70,7 @@ specs/001-processar-topico-dlq/
 
 ```text
 src/
-├── TicketProcessor.Api/
+├── TicketProcessor.Worker/
 ├── TicketProcessor.Domain/
 ├── TicketProcessor.Application/
 └── TicketProcessor.Infra/
@@ -79,7 +79,7 @@ tests/
 └── TicketProcessor.Tests/
 ```
 
-**Structure Decision**: `TicketProcessor.Api` hospedara o worker (`BackgroundService`) e endpoints operacionais internos (health/reprocess), enquanto regras de dominio e casos de uso permanecem desacoplados nas camadas Domain/Application.
+**Structure Decision**: `TicketProcessor.Worker` hospedara o worker (`BackgroundService`) e interfaces operacionais internas (health/reprocess), enquanto regras de dominio e casos de uso permanecem desacoplados nas camadas Domain/Application.
 
 ## Complexity Tracking
 

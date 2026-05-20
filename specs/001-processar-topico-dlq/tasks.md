@@ -17,7 +17,7 @@
 ## Path Conventions
 
 - **Clean Architecture obrigatoria**:
-  - `src/TicketProcessor.Api`
+  - `src/TicketProcessor.Worker`
   - `src/TicketProcessor.Domain`
   - `src/TicketProcessor.Application`
   - `src/TicketProcessor.Infra`
@@ -27,9 +27,9 @@
 
 **Purpose**: Inicializar solucao .NET 8 e estrutura base de projetos da feature.
 
-- [ ] T001 Criar solution e projetos base em `TicketProcessor.sln`, `src/TicketProcessor.Api/TicketProcessor.Api.csproj`, `src/TicketProcessor.Domain/TicketProcessor.Domain.csproj`, `src/TicketProcessor.Application/TicketProcessor.Application.csproj`, `src/TicketProcessor.Infra/TicketProcessor.Infra.csproj`, `tests/TicketProcessor.Tests/TicketProcessor.Tests.csproj`
-- [ ] T002 Configurar referencias entre projetos e pacotes principais em `src/TicketProcessor.Api/TicketProcessor.Api.csproj`, `src/TicketProcessor.Application/TicketProcessor.Application.csproj`, `src/TicketProcessor.Infra/TicketProcessor.Infra.csproj`, `tests/TicketProcessor.Tests/TicketProcessor.Tests.csproj`
-- [ ] T003 [P] Criar configuracoes iniciais de ambiente e observabilidade em `src/TicketProcessor.Api/appsettings.json`, `src/TicketProcessor.Api/appsettings.Development.json`, `src/TicketProcessor.Api/Properties/launchSettings.json`
+- [ ] T001 Criar solution e projetos base em `TicketProcessor.slnx`, `src/TicketProcessor.Worker/TicketProcessor.Worker.csproj`, `src/TicketProcessor.Domain/TicketProcessor.Domain.csproj`, `src/TicketProcessor.Application/TicketProcessor.Application.csproj`, `src/TicketProcessor.Infra/TicketProcessor.Infra.csproj`, `tests/TicketProcessor.Tests/TicketProcessor.Tests.csproj`
+- [ ] T002 Configurar referencias entre projetos e pacotes principais em `src/TicketProcessor.Worker/TicketProcessor.Worker.csproj`, `src/TicketProcessor.Application/TicketProcessor.Application.csproj`, `src/TicketProcessor.Infra/TicketProcessor.Infra.csproj`, `tests/TicketProcessor.Tests/TicketProcessor.Tests.csproj`
+- [ ] T003 [P] Criar configuracoes iniciais de ambiente e observabilidade em `src/TicketProcessor.Worker/appsettings.json`, `src/TicketProcessor.Worker/appsettings.Development.json`, `src/TicketProcessor.Worker/Properties/launchSettings.json`
 
 ---
 
@@ -131,6 +131,10 @@
 - [ ] T036 [P] Ajustar configuracoes de deploy Kubernetes (readiness/liveness/resources) em `deploy/k8s/ticket-processor-deployment.yaml`
 - [ ] T037 Revisar mascaramento de dados sensiveis em logs e tratamento de excecoes em `src/TicketProcessor.Api/Observability/LogSanitizer.cs`, `src/TicketProcessor.Api/Workers/TopicConsumerWorker.cs`
 - [ ] T038 Executar validacao fim a fim do quickstart e registrar evidencias em `specs/001-processar-topico-dlq/quickstart.md`
+- [ ] T039 [P] Definir e documentar contrato de status operacional (saude e processamento) em `specs/001-processar-topico-dlq/contracts/operational-status-contract.md`
+- [ ] T040 [P] Criar teste de performance para validar SC-001 (latencia de processamento) em `tests/TicketProcessor.Tests/Performance/Sc001ProcessingLatencyTests.cs`
+- [ ] T041 [P] Criar teste de reprocessamento em lote para validar SC-004 em `tests/TicketProcessor.Tests/Performance/Sc004DlqBatchReprocessingTests.cs`
+- [ ] T042 Consolidar relatorio de taxa de sucesso (NFR-005) com evidencias de execucao em `specs/001-processar-topico-dlq/quickstart.md`
 
 ---
 
@@ -164,6 +168,7 @@
 - Em US2: T022, T023 e T024 podem iniciar em paralelo.
 - Em US3: T029, T030 e T031 podem iniciar em paralelo.
 - T035 e T036 podem rodar em paralelo na fase de Polish.
+- T039, T040 e T041 podem rodar em paralelo na fase de Polish.
 
 ---
 
@@ -213,3 +218,4 @@ Task: "T017 [US1] Validadores e regras"
 - Tarefas com [P] nao compartilham o mesmo arquivo de implementacao direta.
 - Cada US possui criterio de teste independente.
 - Tarefas refletem contratos em `contracts/` e entidades em `data-model.md`.
+- SC-001, SC-004 e NFR-005 possuem tarefas dedicadas de validacao quantitativa.
