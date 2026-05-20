@@ -1,50 +1,122 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+Sync Impact Report
+Version change: 1.1.0 -> 1.2.0
+Modified principles:
+- I. Contratos de API e Operacao -> I. Contratos de API e Operacao (.NET 8+ e OpenAPI normativo com UI opcional)
+- V. Qualidade de Codigo, Seguranca e Performance -> V. Qualidade de Codigo, Seguranca e Performance (governanca de segredos e criterios verificaveis)
+Added sections:
+- Nenhuma
+Removed sections:
+- Nenhuma
+Templates requiring updates:
+- .specify/templates/plan-template.md ✅ updated
+- .specify/templates/spec-template.md ✅ updated
+- .specify/templates/tasks-template.md ✅ updated
+- .specify/templates/commands/*.md ⚠ pending (diretorio nao existe neste repositorio)
+Follow-up TODOs:
+- Nenhum
+-->
+
+# Backend Architecture Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Contratos de API e Operacao
+Todos os servicos HTTP DEVE usar ASP.NET Core Minimal APIs em runtime .NET 8+ como padrao preferencial,
+seguir convencoes REST, expor versionamento de API e publicar contrato OpenAPI.
+Swagger UI, Scalar ou ferramenta equivalente DEVE ser tratado como mecanismo de visualizacao,
+nao como substituto do contrato OpenAPI.
+Cada servico DEVE expor Health Checks e DEVE aplicar timeout padrao maximo de 30 segundos
+em operacoes externas. Toda operacao assincrona DEVE receber e propagar CancellationToken.
+Justificativa: contratos claros e comportamento operacional previsivel reduzem regressao,
+aceleram diagnostico e melhoram confiabilidade em producao.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### II. Persistencia Explicita e Eficiente
+Persistencia transacional DEVE usar SQL Server. Acesso a dados DEVE preferir Dapper,
+com queries explicitas e projection intencional; SELECT * e PROIBIDO.
+Toda consulta paginavel DEVE implementar paginacao e o desenho de consultas DEVE evitar
+N+1 por meio de joins/projecoes adequadas.
+Justificativa: controle explicito da camada de dados melhora performance, previsibilidade e custo.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### III. Mensageria Confiavel e Consistente
+Integracoes assincronas DEVE usar Azure Service Bus. Toda fila ou topico DEVE ter
+Dead Letter Queue ativa. Consumidores DEVE ser idempotentes e DEVE aplicar retry policy
+com Polly. Fluxos que combinam escrita em banco e publicacao de evento DEVE usar Outbox Pattern
+ou alternativa equivalente com garantia de consistencia. Mensagens DEVE manter rastreabilidade
+com identificadores de correlacao.
+Justificativa: consistencia e recuperacao controlada evitam perda de eventos e duplicidade de efeitos.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### IV. Observabilidade e Resiliencia por Padrao
+OpenTelemetry, logs estruturados, CorrelationId, tracing distribuido e metricas DEVE estar
+presentes em todos os servicos. Endpoints e consumidores DEVE registrar falhas com contexto 
+operacional suficiente sem expor dados sensiveis.
+Justificativa: sem telemetria padronizada nao ha operacao segura nem melhoria continua baseada em dados.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### V. Qualidade de Codigo, Seguranca e Performance
+Codigo DEVE aplicar SOLID e Clean Architecture, mantendo responsabilidades pequenas e
+separacao entre transporte, dominio e infraestrutura. Logica de negocio em controllers/endpoints
+e proibida. Inputs DEVE ser validados com FluentValidation ou estrategia equivalente.
+Autenticacao JWT e obrigatoria para recursos protegidos.
+Operacoes de IO DEVE ser assincronas,
+com minimizacao de alocacao e serializacao desnecessaria. Unit tests sao obrigatorios;
+integration tests sao recomendados para fluxos criticos e contratos externos.
+Justificativa: qualidade estrutural, seguranca e eficiencia sustentam evolucao de longo prazo.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+## Plataforma e Operacao em Kubernetes
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+Aplicacoes DEVE ser stateless e configuradas via variaveis de ambiente.
+Readiness e Liveness probes sao obrigatorios para workloads em cluster.
+Todo deployment DEVE declarar resource requests e limits.
+HPA DEVE ser configurado para cargas criticas e servicos com variacao de throughput.
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+## Arquitetura de Solucao e Estrutura de Projetos
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+A solucao DEVE seguir Clean Architecture com separacao explicita por projetos.
+A estrutura padrao obrigatoria da raiz do repositorio e:
+
+- src/NomeProjeto.Api
+- src/NomeProjeto.Domain
+- src/NomeProjeto.Application
+- src/NomeProjeto.Infra
+- tests/NomeProjeto.Tests
+
+Regras de dependencia entre camadas:
+- NomeProjeto.Api DEVE depender de NomeProjeto.Application e PODE referenciar NomeProjeto.Infra somente para composition root (registracao de DI e wiring de adaptadores), sem conter logica de negocio.
+- NomeProjeto.Application DEVE conter casos de uso, contratos e regras de orquestracao da aplicacao.
+- NomeProjeto.Domain DEVE conter regras de negocio centrais e nao DEVE depender de infraestrutura.
+- NomeProjeto.Infra DEVE implementar adaptadores externos (banco, mensageria, cache, clientes externos) e nao DEVE conter regra de negocio de dominio.
+- NomeProjeto.Tests DEVE cobrir, no minimo, casos de uso e regras de dominio criticas, mantendo testes deterministas.
+
+## Fluxo de Desenvolvimento e Qualidade
+
+Cada mudanca DEVE demonstrar conformidade com esta constituicao no plano de implementacao,
+incluindo evidencias de API, persistencia, mensageria, observabilidade, seguranca e testes.
+Code review DEVE bloquear merges com violacoes nao justificadas.
+Excecoes arquiteturais DEVE conter justificativa tecnica, risco assumido e plano de remediacao.
+
+Proibicoes nao negociaveis:
+- Nunca utilizar AutoMapper.
+- Nunca implementar logica de negocio em controllers/endpoints.
+- Nunca utilizar metodos sincronos para IO.
+- Nunca ignorar CancellationToken em operacoes assincronas.
+- Nunca criar servicos com multiplas responsabilidades.
+- Nunca acessar banco diretamente da camada de API.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+Esta constituicao prevalece sobre convencoes locais de feature quando houver conflito.
+Mudancas neste documento DEVE ser propostas via PR com justificativa e analise de impacto
+nos templates e comandos do Spec Kit.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+Politica de versionamento da constituicao:
+- MAJOR: remocao ou redefinicao incompativel de principios/gates obrigatorios.
+- MINOR: adicao de novo principio, secao ou obrigatoriedade material.
+- PATCH: clarificacoes editoriais sem alterar exigencias normativas.
+
+Revisao de compliance:
+- Todo plano DEVE registrar Constitution Check com evidencias verificaveis.
+- Todo conjunto de tarefas DEVE refletir testes obrigatorios, observabilidade e seguranca.
+- Toda PR DEVE incluir checklist de aderencia com, no minimo: runtime .NET 8+, API versionada, contrato OpenAPI publicado, timeout/cancellation token, observabilidade (logs+traces+metricas), validacao de input, politica de segredos e separacao de camadas.
+- Toda PR DEVE registrar desvios aprovados explicitamente.
+
+**Version**: 1.2.0 | **Ratified**: 2026-05-19 | **Last Amended**: 2026-05-20

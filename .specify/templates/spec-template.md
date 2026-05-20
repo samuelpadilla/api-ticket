@@ -98,6 +98,21 @@
 - **FR-006**: System MUST authenticate users via [NEEDS CLARIFICATION: auth method not specified - email/password, SSO, OAuth?]
 - **FR-007**: System MUST retain user data for [NEEDS CLARIFICATION: retention period not specified]
 
+### Non-Functional Requirements
+
+- **NFR-001**: Solution MUST define observability baseline (logs estruturados, metricas e tracing distribuido) para os fluxos principais.
+- **NFR-002**: Solution MUST define controles de seguranca (autenticacao/autorizacao, validacao de entrada e tratamento de dados sensiveis em logs).
+- **NFR-003**: Solution MUST define metas operacionais mensuraveis (latencia, disponibilidade, throughput ou erro maximo).
+- **NFR-004**: Solution MUST explicitar requisitos de resiliencia (timeouts, retries, idempotencia ou fallback) para dependencias externas.
+
+### Architectural Constraints
+
+- Definir versionamento de API e contrato OpenAPI quando houver superficie HTTP.
+- Definir estrategia de persistencia explicita e paginacao para leituras listaveis quando aplicavel.
+- Definir estrategia de mensageria confiavel para fluxos assincronos quando aplicavel.
+- Definir estrategia de deploy/operacao em ambiente containerizado quando aplicavel.
+- Definir separacao em Clean Architecture quando houver implementacao backend, contemplando Api, Domain, Application, Infra e projeto de testes.
+
 ### Key Entities *(include if feature involves data)*
 
 - **[Entity 1]**: [What it represents, key attributes without implementation]
