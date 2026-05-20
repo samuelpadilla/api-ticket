@@ -16,7 +16,7 @@
 
 ## Path Conventions
 
-- **Clean Architecture obrigatoria**:
+- **Clean Architecture obrigatoria (Worker-first)**:
   - `src/TicketProcessor.Worker`
   - `src/TicketProcessor.Domain`
   - `src/TicketProcessor.Application`
@@ -37,23 +37,26 @@
 
 **Purpose**: Entregar infraestrutura comum obrigatoria antes de qualquer historia de usuario.
 
-**⚠️ CRITICAL**: Nenhuma tarefa de US pode iniciar antes desta fase.
+**CRITICAL**: Nenhuma tarefa de US pode iniciar antes desta fase.
 
 - [ ] T004 Criar contratos de configuracao e options para Service Bus/SQL/Retry em `src/TicketProcessor.Application/Configuration/ServiceBusOptions.cs`, `src/TicketProcessor.Application/Configuration/SqlOptions.cs`, `src/TicketProcessor.Application/Configuration/RetryOptions.cs`
 - [ ] T005 [P] Implementar bootstrap de DI por camada em `src/TicketProcessor.Application/DependencyInjection.cs`, `src/TicketProcessor.Infra/DependencyInjection.cs`, `src/TicketProcessor.Worker/DependencyInjection.cs`
-- [ ] T006 [P] Configurar OpenTelemetry, logs estruturados e correlation middleware em `src/TicketProcessor.Worker/Observability/TelemetrySetup.cs`, `src/TicketProcessor.Worker/Observability/CorrelationContextMiddleware.cs`
-- [ ] T007 Implementar abstrações de mensageria e persistencia em `src/TicketProcessor.Application/Abstractions/Messaging/IMessageConsumer.cs`, `src/TicketProcessor.Application/Abstractions/Messaging/IDeadLetterPublisher.cs`, `src/TicketProcessor.Application/Abstractions/Persistence/IProcessingRepository.cs`
+- [ ] T006 [P] Configurar OpenTelemetry, logs estruturados e contexto de correlacao em `src/TicketProcessor.Worker/Observability/TelemetrySetup.cs`, `src/TicketProcessor.Worker/Observability/CorrelationContextAccessor.cs`
+- [ ] T007 Implementar abstracoes de mensageria e persistencia em `src/TicketProcessor.Application/Abstractions/Messaging/IMessageConsumer.cs`, `src/TicketProcessor.Application/Abstractions/Messaging/IDeadLetterPublisher.cs`, `src/TicketProcessor.Application/Abstractions/Persistence/IProcessingRepository.cs`
 - [ ] T008 [P] Criar infraestrutura de SQL com Dapper e fabrica de conexao em `src/TicketProcessor.Infra/Persistence/SqlConnectionFactory.cs`, `src/TicketProcessor.Infra/Persistence/DapperProcessingRepository.cs`
 - [ ] T009 [P] Criar cliente de Service Bus e processor base em `src/TicketProcessor.Infra/Messaging/ServiceBusProcessorFactory.cs`, `src/TicketProcessor.Infra/Messaging/ServiceBusTopicConsumer.cs`
-- [ ] T010 Implementar health checks e readiness/liveness em `src/TicketProcessor.Worker/Health/ServiceBusHealthCheck.cs`, `src/TicketProcessor.Worker/Health/SqlServerHealthCheck.cs`, `src/TicketProcessor.Worker/Program.cs`
-- [ ] T011 Implementar esquema SQL inicial (Inbox + historico de processamento) em `src/TicketProcessor.Infra/Persistence/Scripts/001_init_processing.sql`
+- [ ] T010 Implementar health checks e readiness/liveness no host worker em `src/TicketProcessor.Worker/Health/ServiceBusHealthCheck.cs`, `src/TicketProcessor.Worker/Health/SqlServerHealthCheck.cs`, `src/TicketProcessor.Worker/Program.cs`
+- [ ] T011 Implementar esquema SQL inicial (Inbox + historico de processamento + Outbox) em `src/TicketProcessor.Infra/Persistence/Scripts/001_init_processing.sql`
 - [ ] T012 Definir politicas de retry com Polly e timeout global de operacoes externas em `src/TicketProcessor.Infra/Resilience/RetryPolicies.cs`, `src/TicketProcessor.Infra/Resilience/TimeoutPolicies.cs`
+- [ ] T013 Implementar mecanismo de consistencia de publicacao (Outbox ou equivalente) para fluxos de escrita e reenvio em `src/TicketProcessor.Application/Abstractions/Messaging/IOutboxDispatcher.cs`, `src/TicketProcessor.Infra/Messaging/OutboxDispatcher.cs`, `src/TicketProcessor.Infra/Persistence/DapperOutboxRepository.cs`
+- [ ] T047 Implementar configuracao de concorrencia por instancia e estrategia de backpressure por lag em `src/TicketProcessor.Application/Configuration/WorkerProcessingOptions.cs`, `src/TicketProcessor.Worker/Workers/TopicConsumerWorker.cs`
+- [ ] T048 Criar teste de integracao para validar concorrencia configuravel e acionamento de backpressure quando lag exceder 1.000 mensagens em `tests/TicketProcessor.Tests/Integration/Us1BackpressureAndConcurrencyTests.cs`
 
-**Checkpoint**: Fundacao pronta - historias de usuario podem ser implementadas em paralelo.
+**Checkpoint**: Fundacao pronta e aderente a constituicao - historias de usuario podem ser implementadas em paralelo.
 
 ---
 
-## Phase 3: User Story 1 - Processar mensagens validas do topico (Priority: P1) 🎯 MVP
+## Phase 3: User Story 1 - Processar mensagens validas do topico (Priority: P1) MVP
 
 **Goal**: Consumir mensagens validas do topico e persistir no banco com idempotencia e rastreabilidade.
 
@@ -61,18 +64,18 @@
 
 ### Tests for User Story 1
 
-- [ ] T013 [P] [US1] Criar unit tests de validacao e idempotencia em `tests/TicketProcessor.Tests/Unit/Application/MessageProcessingServiceTests.cs`
-- [ ] T014 [P] [US1] Criar integration test de consumo e persistencia no SQL em `tests/TicketProcessor.Tests/Integration/Us1ConsumeAndPersistTests.cs`
-- [ ] T015 [P] [US1] Criar contract test da mensagem de topico com base em `contracts/topic-message-contract.md` em `tests/TicketProcessor.Tests/Contract/TopicMessageContractTests.cs`
+- [ ] T014 [P] [US1] Criar unit tests de validacao e idempotencia em `tests/TicketProcessor.Tests/Unit/Application/MessageProcessingServiceTests.cs`
+- [ ] T015 [P] [US1] Criar integration test de consumo e persistencia no SQL em `tests/TicketProcessor.Tests/Integration/Us1ConsumeAndPersistTests.cs`
+- [ ] T016 [P] [US1] Criar contract test da mensagem de topico com base em `contracts/topic-message-contract.md` em `tests/TicketProcessor.Tests/Contract/TopicMessageContractTests.cs`
 
 ### Implementation for User Story 1
 
-- [ ] T016 [P] [US1] Implementar entidades de dominio de mensagem e processamento em `src/TicketProcessor.Domain/Entities/TopicMessage.cs`, `src/TicketProcessor.Domain/Entities/ProcessingRecord.cs`, `src/TicketProcessor.Domain/Entities/ProcessedMessage.cs`
-- [ ] T017 [P] [US1] Implementar validadores de payload e regras de dominio em `src/TicketProcessor.Application/Validation/TopicMessageValidator.cs`, `src/TicketProcessor.Domain/Rules/MessageSchemaRule.cs`
-- [ ] T018 [US1] Implementar caso de uso de processamento principal com CancellationToken em `src/TicketProcessor.Application/UseCases/ProcessTopicMessage/ProcessTopicMessageHandler.cs`
-- [ ] T019 [US1] Implementar escrita transacional com Inbox (idempotencia) em `src/TicketProcessor.Infra/Persistence/DapperProcessingRepository.cs`
-- [ ] T020 [US1] Implementar worker de consumo principal e ack manual em `src/TicketProcessor.Worker/Workers/TopicConsumerWorker.cs`
-- [ ] T021 [US1] Adicionar metrica e logs estruturados de sucesso no fluxo de consumo em `src/TicketProcessor.Worker/Observability/ProcessingMetrics.cs`, `src/TicketProcessor.Worker/Workers/TopicConsumerWorker.cs`
+- [ ] T017 [P] [US1] Implementar entidades de dominio de mensagem e processamento em `src/TicketProcessor.Domain/Entities/TopicMessage.cs`, `src/TicketProcessor.Domain/Entities/ProcessingRecord.cs`, `src/TicketProcessor.Domain/Entities/ProcessedMessage.cs`
+- [ ] T018 [P] [US1] Implementar validadores de payload e regras de dominio em `src/TicketProcessor.Application/Validation/TopicMessageValidator.cs`, `src/TicketProcessor.Domain/Rules/MessageSchemaRule.cs`
+- [ ] T019 [US1] Implementar caso de uso de processamento principal com CancellationToken em `src/TicketProcessor.Application/UseCases/ProcessTopicMessage/ProcessTopicMessageHandler.cs`
+- [ ] T020 [US1] Implementar escrita transacional com Inbox (idempotencia) em `src/TicketProcessor.Infra/Persistence/DapperProcessingRepository.cs`
+- [ ] T021 [US1] Implementar worker de consumo principal e ack manual em `src/TicketProcessor.Worker/Workers/TopicConsumerWorker.cs`
+- [ ] T022 [US1] Adicionar metricas e logs estruturados de sucesso no fluxo de consumo em `src/TicketProcessor.Worker/Observability/ProcessingMetrics.cs`, `src/TicketProcessor.Worker/Workers/TopicConsumerWorker.cs`
 
 **Checkpoint**: US1 funcional e testavel de forma independente.
 
@@ -86,16 +89,16 @@
 
 ### Tests for User Story 2
 
-- [ ] T022 [P] [US2] Criar unit tests de classificacao de falhas e retry policy em `tests/TicketProcessor.Tests/Unit/Infra/RetryAndFailureClassificationTests.cs`
-- [ ] T023 [P] [US2] Criar integration test de dead-letter apos esgotar tentativas em `tests/TicketProcessor.Tests/Integration/Us2DeadLetterFlowTests.cs`
+- [ ] T023 [P] [US2] Criar unit tests de classificacao de falhas e retry policy em `tests/TicketProcessor.Tests/Unit/Infra/RetryAndFailureClassificationTests.cs`
+- [ ] T024 [P] [US2] Criar integration test de dead-letter apos esgotar tentativas em `tests/TicketProcessor.Tests/Integration/Us2DeadLetterFlowTests.cs`
 
 ### Implementation for User Story 2
 
-- [ ] T024 [P] [US2] Implementar modelo de falha e dead-letter no dominio em `src/TicketProcessor.Domain/Entities/DeadLetterItem.cs`, `src/TicketProcessor.Domain/Enums/ProcessingStatus.cs`
-- [ ] T025 [US2] Implementar caso de uso de tratamento de erro e decisao retry/dead-letter em `src/TicketProcessor.Application/UseCases/HandleProcessingFailure/HandleProcessingFailureHandler.cs`
-- [ ] T026 [US2] Implementar publisher de DLQ e metadados de erro em `src/TicketProcessor.Infra/Messaging/DeadLetterPublisher.cs`
-- [ ] T027 [US2] Integrar retry com Polly no worker e registrar historico de tentativas em `src/TicketProcessor.Worker/Workers/TopicConsumerWorker.cs`, `src/TicketProcessor.Infra/Resilience/RetryPolicies.cs`
-- [ ] T028 [US2] Persistir motivo de falha e tentativa no historico em `src/TicketProcessor.Infra/Persistence/DapperProcessingRepository.cs`
+- [ ] T025 [P] [US2] Implementar modelo de falha e dead-letter no dominio em `src/TicketProcessor.Domain/Entities/DeadLetterItem.cs`, `src/TicketProcessor.Domain/Enums/ProcessingStatus.cs`
+- [ ] T026 [US2] Implementar caso de uso de tratamento de erro e decisao retry/dead-letter em `src/TicketProcessor.Application/UseCases/HandleProcessingFailure/HandleProcessingFailureHandler.cs`
+- [ ] T027 [US2] Implementar publisher de DLQ e metadados de erro em `src/TicketProcessor.Infra/Messaging/DeadLetterPublisher.cs`
+- [ ] T028 [US2] Integrar retry com Polly no worker e registrar historico de tentativas em `src/TicketProcessor.Worker/Workers/TopicConsumerWorker.cs`, `src/TicketProcessor.Infra/Resilience/RetryPolicies.cs`
+- [ ] T029 [US2] Persistir motivo de falha e tentativa no historico em `src/TicketProcessor.Infra/Persistence/DapperProcessingRepository.cs`
 
 **Checkpoint**: US1 e US2 funcionais independentemente.
 
@@ -109,15 +112,18 @@
 
 ### Tests for User Story 3
 
-- [ ] T029 [P] [US3] Criar contract test do reprocessamento com base em `contracts/dlq-reprocess-contract.md` em `tests/TicketProcessor.Tests/Contract/DlqReprocessContractTests.cs`
-- [ ] T030 [P] [US3] Criar integration test de reprocessamento seletivo de DLQ em `tests/TicketProcessor.Tests/Integration/Us3DlqReprocessTests.cs`
+- [ ] T030 [P] [US3] Criar contract test do reprocessamento com base em `contracts/dlq-reprocess-contract.md` em `tests/TicketProcessor.Tests/Contract/DlqReprocessContractTests.cs`
+- [ ] T031 [P] [US3] Criar integration test de reprocessamento seletivo de DLQ em `tests/TicketProcessor.Tests/Integration/Us3DlqReprocessTests.cs`
+- [ ] T032 [P] [US3] Criar testes de autorizacao para interface operacional de reprocessamento em `tests/TicketProcessor.Tests/Integration/Us3OperationalAuthTests.cs`
 
 ### Implementation for User Story 3
 
-- [ ] T031 [P] [US3] Implementar caso de uso de reprocessamento seletivo em `src/TicketProcessor.Application/UseCases/ReprocessDlqMessages/ReprocessDlqMessagesHandler.cs`
-- [ ] T032 [US3] Implementar leitor de DLQ e reenvio ao topico principal em `src/TicketProcessor.Infra/Messaging/DlqReader.cs`, `src/TicketProcessor.Infra/Messaging/TopicMessageRepublisher.cs`
-- [ ] T033 [US3] Implementar endpoint operacional interno de reprocessamento em `src/TicketProcessor.Worker/Endpoints/Operational/ReprocessDlqEndpoint.cs`, `src/TicketProcessor.Worker/Program.cs`
-- [ ] T034 [US3] Registrar auditoria de reprocessamento e status final em `src/TicketProcessor.Infra/Persistence/DapperProcessingRepository.cs`
+- [ ] T033 [P] [US3] Implementar caso de uso de reprocessamento seletivo em `src/TicketProcessor.Application/UseCases/ReprocessDlqMessages/ReprocessDlqMessagesHandler.cs`
+- [ ] T034 [US3] Implementar leitor de DLQ e reenvio ao topico principal via Outbox em `src/TicketProcessor.Infra/Messaging/DlqReader.cs`, `src/TicketProcessor.Infra/Messaging/TopicMessageRepublisher.cs`, `src/TicketProcessor.Infra/Messaging/OutboxDispatcher.cs`
+- [ ] T035 [US3] Implementar interface operacional interna de reprocessamento no host Worker em `src/TicketProcessor.Worker/Endpoints/Operational/ReprocessDlqEndpoint.cs`, `src/TicketProcessor.Worker/Program.cs`
+- [ ] T036 [US3] Implementar autenticacao e autorizacao da interface operacional em `src/TicketProcessor.Worker/Security/OperationalAuthExtensions.cs`, `src/TicketProcessor.Worker/Program.cs`
+- [ ] T037 [US3] Publicar contrato OpenAPI versionado da interface operacional em `specs/001-processar-topico-dlq/contracts/operational-reprocess-openapi.yaml`, `src/TicketProcessor.Worker/Program.cs`
+- [ ] T038 [US3] Registrar auditoria de reprocessamento e status final em `src/TicketProcessor.Infra/Persistence/DapperProcessingRepository.cs`
 
 **Checkpoint**: Todas as historias funcionais e testaveis de forma independente.
 
@@ -127,14 +133,16 @@
 
 **Purpose**: Consolidar qualidade operacional, seguranca e prontidao de entrega.
 
-- [ ] T035 [P] Atualizar guia operacional e exemplos de execucao em `specs/001-processar-topico-dlq/quickstart.md`
-- [ ] T036 [P] Ajustar configuracoes de deploy Kubernetes (readiness/liveness/resources) em `deploy/k8s/ticket-processor-deployment.yaml`
-- [ ] T037 Revisar mascaramento de dados sensiveis em logs e tratamento de excecoes em `src/TicketProcessor.Worker/Observability/LogSanitizer.cs`, `src/TicketProcessor.Worker/Workers/TopicConsumerWorker.cs`
-- [ ] T038 Executar validacao fim a fim do quickstart e registrar evidencias em `specs/001-processar-topico-dlq/quickstart.md`
-- [ ] T039 [P] Definir e documentar contrato de status operacional (saude e processamento) em `specs/001-processar-topico-dlq/contracts/operational-status-contract.md`
-- [ ] T040 [P] Criar teste de performance para validar SC-001 (latencia de processamento) em `tests/TicketProcessor.Tests/Performance/Sc001ProcessingLatencyTests.cs`
-- [ ] T041 [P] Criar teste de reprocessamento em lote para validar SC-004 em `tests/TicketProcessor.Tests/Performance/Sc004DlqBatchReprocessingTests.cs`
-- [ ] T042 Consolidar relatorio de taxa de sucesso (NFR-005) com evidencias de execucao em `specs/001-processar-topico-dlq/quickstart.md`
+- [ ] T039 [P] Atualizar guia operacional e exemplos de execucao em `specs/001-processar-topico-dlq/quickstart.md`
+- [ ] T040 [P] Ajustar configuracoes de deploy Kubernetes (readiness/liveness/resources) em `deploy/k8s/ticket-processor-deployment.yaml`
+- [ ] T041 Revisar mascaramento de dados sensiveis em logs e tratamento de excecoes em `src/TicketProcessor.Worker/Observability/LogSanitizer.cs`, `src/TicketProcessor.Worker/Workers/TopicConsumerWorker.cs`
+- [ ] T042 Executar validacao fim a fim do quickstart e registrar evidencias em `specs/001-processar-topico-dlq/quickstart.md`
+- [ ] T043 [P] Definir e documentar contrato de status operacional (saude e processamento) em `specs/001-processar-topico-dlq/contracts/operational-status-contract.md`
+- [ ] T044 [P] Criar teste de performance para validar SC-001 (latencia de processamento) em `tests/TicketProcessor.Tests/Performance/Sc001ProcessingLatencyTests.cs`
+- [ ] T045 [P] Criar teste de reprocessamento em lote para validar SC-004 em `tests/TicketProcessor.Tests/Performance/Sc004DlqBatchReprocessingTests.cs`
+- [ ] T046 Consolidar relatorio de taxa de sucesso (NFR-005) com evidencias de execucao em `specs/001-processar-topico-dlq/quickstart.md`
+- [ ] T049 Implementar agregacao operacional da taxa de sucesso em janela movel de 24h e regra de condicao operacional normal em `src/TicketProcessor.Worker/Observability/OperationalSuccessRateCalculator.cs`, `src/TicketProcessor.Worker/Observability/DependencyAvailabilityTracker.cs`
+- [ ] T050 [P] Criar teste de integracao para validar calculo da taxa de sucesso (NFR-005) e indisponibilidade acumulada de dependencias externas em `tests/TicketProcessor.Tests/Integration/Nfr005OperationalSuccessRateTests.cs`
 
 ---
 
@@ -164,11 +172,13 @@
 
 - T003 pode rodar em paralelo com T001/T002.
 - T005, T006, T008 e T009 podem rodar em paralelo dentro da Foundational.
-- Em US1: T013, T014, T015 e T016/T017 podem iniciar em paralelo.
-- Em US2: T022, T023 e T024 podem iniciar em paralelo.
-- Em US3: T029, T030 e T031 podem iniciar em paralelo.
-- T035 e T036 podem rodar em paralelo na fase de Polish.
-- T039, T040 e T041 podem rodar em paralelo na fase de Polish.
+- T047 e T048 podem rodar em paralelo com tarefas da US1 apos conclusao das configuracoes base da Foundational.
+- Em US1: T014, T015, T016 e T017 podem iniciar em paralelo.
+- Em US2: T023, T024 e T025 podem iniciar em paralelo.
+- Em US3: T030, T031, T032 e T033 podem iniciar em paralelo.
+- T039 e T040 podem rodar em paralelo na fase de Polish.
+- T043, T044 e T045 podem rodar em paralelo na fase de Polish.
+- T049 e T050 podem rodar em paralelo com T046 na fase de Polish.
 
 ---
 
@@ -176,13 +186,13 @@
 
 ```bash
 # Testes em paralelo
-Task: "T013 [US1] MessageProcessingServiceTests"
-Task: "T014 [US1] Us1ConsumeAndPersistTests"
-Task: "T015 [US1] TopicMessageContractTests"
+Task: "T014 [US1] MessageProcessingServiceTests"
+Task: "T015 [US1] Us1ConsumeAndPersistTests"
+Task: "T016 [US1] TopicMessageContractTests"
 
 # Modelagem/validacao em paralelo
-Task: "T016 [US1] Entidades de dominio"
-Task: "T017 [US1] Validadores e regras"
+Task: "T017 [US1] Entidades de dominio"
+Task: "T018 [US1] Validadores e regras"
 ```
 
 ---
@@ -192,7 +202,7 @@ Task: "T017 [US1] Validadores e regras"
 ### MVP First (User Story 1 Only)
 
 1. Concluir Phase 1 e Phase 2.
-2. Concluir US1 (T013-T021).
+2. Concluir US1 (T014-T022).
 3. Validar processamento com idempotencia e observabilidade.
 4. Disponibilizar MVP.
 
@@ -200,14 +210,14 @@ Task: "T017 [US1] Validadores e regras"
 
 1. MVP com US1.
 2. Adicionar US2 para resiliencia e DLQ.
-3. Adicionar US3 para operacao de reprocessamento.
+3. Adicionar US3 para operacao de reprocessamento seguro.
 4. Fechar com Polish e validacao operacional.
 
 ### Parallel Team Strategy
 
 1. Dev A: base de worker + consumo (US1).
 2. Dev B: resiliencia/retry/dead-letter (US2).
-3. Dev C: reprocessamento e endpoint operacional (US3).
+3. Dev C: reprocessamento, auth operacional e contrato OpenAPI (US3).
 4. Integracao conjunta em checkpoints por fase.
 
 ---
@@ -215,7 +225,8 @@ Task: "T017 [US1] Validadores e regras"
 ## Notes
 
 - Todos os itens seguem o formato obrigatorio de checklist com ID.
-- Tarefas com [P] nao compartilham o mesmo arquivo de implementacao direta.
 - Cada US possui criterio de teste independente.
 - Tarefas refletem contratos em `contracts/` e entidades em `data-model.md`.
 - SC-001, SC-004 e NFR-005 possuem tarefas dedicadas de validacao quantitativa.
+- FR-001 possui tarefas dedicadas para concorrencia configuravel e backpressure por lag.
+- Estrutura e caminhos estao alinhados ao modelo Worker-first da constituicao.

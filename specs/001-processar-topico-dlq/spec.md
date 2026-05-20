@@ -66,7 +66,7 @@ Como operador da plataforma, quero iniciar reprocessamento de mensagens da DLQ p
 
 ### Functional Requirements
 
-- **FR-001**: O sistema DEVE consumir mensagens de um topico de mensageria de forma continua e controlada.
+- **FR-001**: O sistema DEVE consumir mensagens de um topico de mensageria de forma continua, com limite configuravel de concorrencia por instancia (padrao: 10 mensagens em processamento simultaneo) e controle de backpressure quando o lag exceder 1.000 mensagens pendentes.
 - **FR-002**: O sistema DEVE validar a estrutura e os campos obrigatorios da mensagem antes da persistencia.
 - **FR-003**: O sistema DEVE persistir os dados processados com garantia de idempotencia para evitar duplicidade.
 - **FR-004**: O sistema DEVE aplicar politica de tentativas de reprocessamento para falhas transientes.
@@ -81,7 +81,7 @@ Como operador da plataforma, quero iniciar reprocessamento de mensagens da DLQ p
 - **NFR-002**: A solucao DEVE suportar processamento assincrono com cancelamento cooperativo e timeout operacional maximo de 30 segundos por operacao externa.
 - **NFR-003**: A solucao DEVE registrar logs estruturados, metricas e traces distribuidos para observabilidade.
 - **NFR-004**: A solucao DEVE manter confidencialidade de dados sensiveis em logs e trilhas de erro.
-- **NFR-005**: A solucao DEVE manter taxa de sucesso de processamento de mensagens validas de, no minimo, 99% em condicoes operacionais normais.
+- **NFR-005**: A solucao DEVE manter taxa de sucesso de processamento de mensagens validas de, no minimo, 99%, medida em janelas moveis de 24 horas, com base nas metricas de processamento emitidas pelo worker. Para este requisito, "condicoes operacionais normais" significa indisponibilidade acumulada de dependencias externas inferior a 5 minutos por hora.
 
 ### Architectural Constraints
 
@@ -100,7 +100,7 @@ Como operador da plataforma, quero iniciar reprocessamento de mensagens da DLQ p
 
 ### Measurable Outcomes
 
-- **SC-001**: 95% das mensagens validas devem ser processadas e persistidas em ate 60 segundos apos publicacao no topico.
+- **SC-001**: Em condicoes operacionais normais, o p95 do tempo entre consumo e persistencia DEVE ser menor ou igual a 2 segundos, e 95% das mensagens validas DEVE ser processadas e persistidas em ate 60 segundos apos publicacao no topico.
 - **SC-002**: 100% das mensagens com falha nao recuperavel devem ser encaminhadas para DLQ com motivo de erro registrado.
 - **SC-003**: 100% das mensagens processadas (sucesso ou falha) devem conter identificador de correlacao em logs e trilhas de observabilidade.
 - **SC-004**: O tempo medio para reprocessar um lote de ate 100 mensagens da DLQ deve ser inferior a 5 minutos.
