@@ -1,0 +1,38 @@
+# Ignore patterns for C# and .NET
+bin/
+obj/
+*.user
+*.suo
+*.pdb
+*.cache
+*.log
+*.vs/
+.vscode/
+.idea/
+*.tmp
+*.swp
+*.db
+*.DS_Store
+Thumbs.db
+.env*
+# Rider IDE
+.idea/
+*.iml
+# Visual Studio Code
+.vscode/
+# Visual Studio
+.vs/
+# Build Results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+build/
+# NuGet
+*.nupkg
+# npm
+node_modules/
+# Logs
+*.log
+# Coverage
+coverage/

@@ -1,0 +1,7 @@
+# Ignore patterns for Docker
+node_modules/
+.git/
+Dockerfile*
+*.log*
+.env*
+coverage/

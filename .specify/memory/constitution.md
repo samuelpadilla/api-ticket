@@ -1,78 +1,96 @@
 <!--
-Sync Impact Report
-Version change: 1.2.0 -> 2.0.0
-Modified principles:
-- I. Contratos de API e Operacao -> I. Contratos de Integracao e Operacao (worker-first)
-- V. Qualidade de Codigo, Seguranca e Performance -> V. Qualidade de Codigo, Seguranca e Performance (seguranca de interfaces operacionais)
-- Arquitetura de Solucao e Estrutura de Projetos (Api -> Worker)
-Added sections:
+Relatório de Impacto de Sincronização
+Mudança de versão: 2.0.0 -> 2.0.1
+Princípios modificados:
+- III. Controle de Versão e Padrões de Ignore -> VI. Controle de Versão e Padrões de Ignore
+- Governança -> Governança (relatório de sincronização e status dos templates corrigidos)
+Seções adicionadas:
 - Nenhuma
-Removed sections:
+Seções removidas:
 - Nenhuma
-Templates requiring updates:
-- .specify/templates/plan-template.md ✅ updated
-- .specify/templates/spec-template.md ✅ updated
-- .specify/templates/tasks-template.md ✅ updated
-- .specify/templates/commands/*.md ⚠ pending (diretorio nao existe neste repositorio)
-Follow-up TODOs:
-- Nenhum
+Templates que requerem atualização:
+- .specify/templates/plan-template.md ✅ validado
+- .specify/templates/spec-template.md ✅ validado
+- .specify/templates/tasks-template.md ✅ validado
+- .specify/templates/commands/*.md N/A (diretório inexistente neste repositório)
+- README.md N/A (arquivo inexistente neste repositório)
+- docs/quickstart.md N/A (arquivo inexistente neste repositório)
+Tarefas pendentes:
+- Nenhuma
 -->
 
-# Backend Architecture Constitution
+# Constituição de Arquitetura Backend
 
-## Core Principles
+## Convenções do Projeto
 
-### I. Contratos de Integracao e Operacao
-Todos os workers em .NET 8+ DEVE definir contratos explicitos de integracao para entrada e saida
-(mensageria, arquivos, agendadores ou HTTP quando aplicavel).
-Quando houver superficie HTTP operacional, contrato OpenAPI e versionamento DEVE ser aplicado.
-Cada servico DEVE expor Health Checks e DEVE aplicar timeout padrao maximo de 30 segundos
-em operacoes externas. Toda operacao assincrona DEVE receber e propagar CancellationToken.
-Justificativa: contratos claros e comportamento operacional previsivel reduzem regressao,
-aceleram diagnostico e melhoram confiabilidade em producao.
+Idioma obrigatório: Português do Brasil (pt-BR)
+Comentários de código: pt-BR
+Documentação: pt-BR
+Mensagens para usuário: pt-BR
 
-### II. Persistencia Explicita e Eficiente
-Persistencia transacional DEVE usar SQL Server. Acesso a dados DEVE preferir Dapper,
-com queries explicitas e projection intencional; SELECT * e PROIBIDO.
-Toda consulta paginavel DEVE implementar paginacao e o desenho de consultas DEVE evitar
-N+1 por meio de joins/projecoes adequadas.
-Justificativa: controle explicito da camada de dados melhora performance, previsibilidade e custo.
+## Princípios Fundamentais
 
-### III. Mensageria Confiavel e Consistente
-Integracoes assincronas DEVE usar Azure Service Bus. Toda fila ou topico DEVE ter
-Dead Letter Queue ativa. Consumidores DEVE ser idempotentes e DEVE aplicar retry policy
-com Polly. Fluxos que combinam escrita em banco e publicacao de evento DEVE usar Outbox Pattern
-ou alternativa equivalente com garantia de consistencia. Mensagens DEVE manter rastreabilidade
-com identificadores de correlacao.
-Justificativa: consistencia e recuperacao controlada evitam perda de eventos e duplicidade de efeitos.
+### I. Contratos de Integração e Operação
+Todos os workers em .NET 8+ DEVEM definir contratos explícitos de integração para entrada e saída
+(mensageria, arquivos, agendadores ou HTTP quando aplicável).
+Quando houver superfície HTTP operacional, contrato OpenAPI e versionamento DEVEM ser aplicados.
+Cada serviço DEVE expor Health Checks e DEVE aplicar timeout padrão máximo de 30 segundos
+em operações externas. Toda operação assíncrona DEVE receber e propagar CancellationToken.
+Justificativa: contratos claros e comportamento operacional previsível reduzem regressão,
+aceleram diagnóstico e melhoram confiabilidade em produção.
 
-### IV. Observabilidade e Resiliencia por Padrao
-OpenTelemetry, logs estruturados, CorrelationId, tracing distribuido e metricas DEVE estar
-presentes em todos os servicos. Endpoints e consumidores DEVE registrar falhas com contexto 
-operacional suficiente sem expor dados sensiveis.
-Justificativa: sem telemetria padronizada nao ha operacao segura nem melhoria continua baseada em dados.
+### II. Persistência Explícita e Eficiente
+Persistência transacional DEVE usar SQL Server. Acesso a dados DEVE preferir Dapper,
+com queries explícitas e projeção intencional; SELECT * é PROIBIDO.
+Toda consulta paginável DEVE implementar paginação e o desenho de consultas DEVE evitar
+N+1 por meio de joins/projeções adequadas.
+Justificativa: controle explícito da camada de dados melhora performance, previsibilidade e custo.
 
-### V. Qualidade de Codigo, Seguranca e Performance
-Codigo DEVE aplicar SOLID e Clean Architecture, mantendo responsabilidades pequenas e
-separacao entre transporte, dominio e infraestrutura. Logica de negocio na camada de entrada
-e proibida. Inputs DEVE ser validados com FluentValidation ou estrategia equivalente.
-Interfaces operacionais protegidas DEVE aplicar autenticacao e autorizacao conforme padrao corporativo.
-Operacoes de IO DEVE ser assincronas,
-com minimizacao de alocacao e serializacao desnecessaria. Unit tests sao obrigatorios;
-integration tests sao recomendados para fluxos criticos e contratos externos.
-Justificativa: qualidade estrutural, seguranca e eficiencia sustentam evolucao de longo prazo.
+### III. Mensageria Confiável e Consistente
+Integrações assíncronas DEVEM usar Azure Service Bus. Toda fila ou tópico DEVE ter
+Dead Letter Queue ativa. Consumidores DEVEM ser idempotentes e DEVEM aplicar política de retries
+com Polly. Fluxos que combinam escrita em banco e publicação de evento DEVEM usar Outbox Pattern
+ou alternativa equivalente com garantia de consistência. Mensagens DEVEM manter rastreabilidade
+com identificadores de correlação.
+Justificativa: consistência e recuperação controlada evitam perda de eventos e duplicidade de efeitos.
 
-## Plataforma e Operacao em Kubernetes
+### IV. Observabilidade e Resiliência por Padrão
+OpenTelemetry, logs estruturados, CorrelationId, tracing distribuído e métricas DEVEM estar
+presentes em todos os serviços. Endpoints e consumidores DEVEM registrar falhas com contexto
+operacional suficiente sem expor dados sensíveis.
+Justificativa: sem telemetria padronizada não há operação segura nem melhoria contínua baseada em dados.
 
-Aplicacoes DEVE ser stateless e configuradas via variaveis de ambiente.
-Readiness e Liveness probes sao obrigatorios para workloads em cluster.
+### V. Qualidade de Código, Segurança e Performance
+Código DEVE aplicar SOLID e Clean Architecture, mantendo responsabilidades pequenas e
+separação entre transporte, domínio e infraestrutura. Lógica de negócio na camada de entrada
+é proibida. Inputs DEVEM ser validados com FluentValidation ou estratégia equivalente.
+Interfaces operacionais protegidas DEVEM aplicar autenticação e autorização conforme padrão corporativo.
+Operações de IO DEVEM ser assíncronas, com minimização de alocação e serialização desnecessária.
+Testes unitários são obrigatórios; testes de integração são recomendados para fluxos críticos e contratos externos.
+Justificativa: qualidade estrutural, segurança e eficiência sustentam evolução de longo prazo.
+
+### VI. Controle de Versão e Padrões de Ignore
+Todo repositório DEVE incluir um arquivo `.gitignore` configurado para projetos C# e .NET.
+Padrões obrigatórios incluem:
+- `bin/`, `obj/` para artefatos de build.
+- Arquivos de configuração de IDEs como `.vs/`, `.vscode/`, `.idea/`.
+- Logs (`*.log`) e arquivos temporários (`*.tmp`, `*.swp`).
+- Diretórios de dependências como `node_modules/`.
+- Arquivos de cobertura de testes (`coverage/`).
+
+Justificativa: um `.gitignore` bem configurado reduz ruído no controle de versão e melhora a colaboração.
+
+## Plataforma e Operação em Kubernetes
+
+Aplicações DEVEM ser stateless e configuradas via variáveis de ambiente.
+Readiness e Liveness probes são obrigatórios para workloads em cluster.
 Todo deployment DEVE declarar resource requests e limits.
-HPA DEVE ser configurado para cargas criticas e servicos com variacao de throughput.
+HPA DEVE ser configurado para cargas críticas e serviços com variação de throughput.
 
-## Arquitetura de Solucao e Estrutura de Projetos
+## Arquitetura de Solução e Estrutura de Projetos
 
-A solucao DEVE seguir Clean Architecture com separacao explicita por projetos.
-A estrutura padrao obrigatoria da raiz do repositorio e:
+A solução DEVE seguir Clean Architecture com separação explícita por projetos.
+A estrutura padrão obrigatória da raiz do repositório é:
 
 - src/NomeProjeto.Worker
 - src/NomeProjeto.Domain
@@ -80,43 +98,43 @@ A estrutura padrao obrigatoria da raiz do repositorio e:
 - src/NomeProjeto.Infra
 - tests/NomeProjeto.Tests
 
-Regras de dependencia entre camadas:
-- NomeProjeto.Worker DEVE depender de NomeProjeto.Application e PODE referenciar NomeProjeto.Infra somente para composition root (registracao de DI e wiring de adaptadores), sem conter logica de negocio.
-- NomeProjeto.Application DEVE conter casos de uso, contratos e regras de orquestracao da aplicacao.
-- NomeProjeto.Domain DEVE conter regras de negocio centrais e nao DEVE depender de infraestrutura.
-- NomeProjeto.Infra DEVE implementar adaptadores externos (banco, mensageria, cache, clientes externos) e nao DEVE conter regra de negocio de dominio.
-- NomeProjeto.Tests DEVE cobrir, no minimo, casos de uso e regras de dominio criticas, mantendo testes deterministas.
+Regras de dependência entre camadas:
+- NomeProjeto.Worker DEVE depender de NomeProjeto.Application e PODE referenciar NomeProjeto.Infra somente para composition root (registro de DI e wiring de adaptadores), sem conter lógica de negócio.
+- NomeProjeto.Application DEVE conter casos de uso, contratos e regras de orquestração da aplicação.
+- NomeProjeto.Domain DEVE conter regras de negócio centrais e NÃO DEVE depender de infraestrutura.
+- NomeProjeto.Infra DEVE implementar adaptadores externos (banco, mensageria, cache, clientes externos) e NÃO DEVE conter regra de negócio de domínio.
+- NomeProjeto.Tests DEVE cobrir, no mínimo, casos de uso e regras de domínio críticas, mantendo testes determinísticos.
 
 ## Fluxo de Desenvolvimento e Qualidade
 
-Cada mudanca DEVE demonstrar conformidade com esta constituicao no plano de implementacao,
-incluindo evidencias de API, persistencia, mensageria, observabilidade, seguranca e testes.
-Code review DEVE bloquear merges com violacoes nao justificadas.
-Excecoes arquiteturais DEVE conter justificativa tecnica, risco assumido e plano de remediacao.
+Cada mudança DEVE demonstrar conformidade com esta constituição no plano de implementação,
+incluindo evidências de integração, persistência, mensageria, observabilidade, segurança e testes.
+Code review DEVE bloquear merges com violações não justificadas.
+Exceções arquiteturais DEVEM conter justificativa técnica, risco assumido e plano de remediação.
 
-Proibicoes nao negociaveis:
+Proibições não negociáveis:
 - Nunca utilizar AutoMapper.
-- Nunca implementar logica de negocio na camada de entrada (worker host, endpoints operacionais, gatilhos).
-- Nunca utilizar metodos sincronos para IO.
-- Nunca ignorar CancellationToken em operacoes assincronas.
-- Nunca criar servicos com multiplas responsabilidades.
+- Nunca implementar lógica de negócio na camada de entrada (worker host, endpoints operacionais, gatilhos).
+- Nunca utilizar métodos síncronos para IO.
+- Nunca ignorar CancellationToken em operações assíncronas.
+- Nunca criar serviços com múltiplas responsabilidades.
 - Nunca acessar banco diretamente da camada de entrada.
 
-## Governance
+## Governança
 
-Esta constituicao prevalece sobre convencoes locais de feature quando houver conflito.
-Mudancas neste documento DEVE ser propostas via PR com justificativa e analise de impacto
+Esta constituição prevalece sobre convenções locais de feature quando houver conflito.
+Mudanças neste documento DEVEM ser propostas via PR com justificativa e análise de impacto
 nos templates e comandos do Spec Kit.
 
-Politica de versionamento da constituicao:
-- MAJOR: remocao ou redefinicao incompativel de principios/gates obrigatorios.
-- MINOR: adicao de novo principio, secao ou obrigatoriedade material.
-- PATCH: clarificacoes editoriais sem alterar exigencias normativas.
+Política de versionamento da constituição:
+- MAJOR: remoção ou redefinição incompatível de princípios ou gates obrigatórios.
+- MINOR: adição de novo princípio, seção ou obrigatoriedade material.
+- PATCH: clarificações editoriais sem alterar exigências normativas.
 
-Revisao de compliance:
-- Todo plano DEVE registrar Constitution Check com evidencias verificaveis.
-- Todo conjunto de tarefas DEVE refletir testes obrigatorios, observabilidade e seguranca.
-- Toda PR DEVE incluir checklist de aderencia com, no minimo: runtime .NET 8+, contratos de integracao documentados, timeout/cancellation token, observabilidade (logs+traces+metricas), validacao de input, politica de segredos e separacao de camadas.
+Revisão de conformidade:
+- Todo plano DEVE registrar Constitution Check com evidências verificáveis.
+- Todo conjunto de tarefas DEVE refletir testes obrigatórios, observabilidade e segurança.
+- Toda PR DEVE incluir checklist de aderência com, no mínimo: runtime .NET 8+, contratos de integração documentados, timeout e CancellationToken, observabilidade, validação de input, política de segredos e separação de camadas.
 - Toda PR DEVE registrar desvios aprovados explicitamente.
 
-**Version**: 2.0.0 | **Ratified**: 2026-05-19 | **Last Amended**: 2026-05-20
+**Versão**: 2.0.1 | **Ratificado**: 2026-05-19 | **Última Emenda**: 2026-05-21

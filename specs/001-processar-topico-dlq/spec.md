@@ -1,70 +1,70 @@
-# Feature Specification: Worker de Consumo de Topico e DLQ
+# Especificação da Feature: Worker de Consumo de Tópico e DLQ
 
-**Feature Branch**: `[001-processar-topico-dlq]`
+**Branch da Feature**: `[001-processar-topico-dlq]`
 
-**Created**: 2026-05-20
+**Criado em**: 2026-05-20
 
-**Status**: Draft
+**Status**: Rascunho
 
-**Input**: User description: "Criar um worker para ler um topico, processar e inserir no banco de dados e tratar a DLQ"
+**Entrada**: Descrição do usuário: "Criar um worker para ler um tópico, processar e inserir no banco de dados e tratar a DLQ"
 
-## User Scenarios & Testing *(mandatory)*
+## Cenários de Usuário e Testes *(obrigatório)*
 
-### User Story 1 - Processar mensagens validas do topico (Priority: P1)
+### História de Usuário 1 - Processar mensagens válidas do tópico (Prioridade: P1)
 
-Como operador da plataforma, quero que o worker consuma mensagens de um topico e persista os dados validos no banco para garantir processamento confiavel e rastreavel.
+Como operador da plataforma, quero que o worker consuma mensagens de um tópico e persista os dados válidos no banco para garantir processamento confiável e rastreável.
 
-**Why this priority**: Este e o fluxo principal de valor; sem ele, a solucao nao atende o objetivo de negocio.
+**Por que esta prioridade**: Este é o fluxo principal de valor; sem ele, a solução não atende o objetivo de negócio.
 
-**Independent Test**: Publicar mensagem valida no topico e verificar que o worker processa, persiste os dados e registra rastreabilidade da operacao.
+**Teste Independente**: Publicar mensagem válida no tópico e verificar que o worker processa, persiste os dados e registra rastreabilidade da operação.
 
-**Acceptance Scenarios**:
+**Cenários de Aceitação**:
 
-1. **Given** uma mensagem valida publicada no topico, **When** o worker consumir a mensagem, **Then** os dados devem ser persistidos no banco com confirmacao de processamento.
-2. **Given** varias mensagens validas, **When** o worker consumir em sequencia, **Then** cada mensagem deve ser processada uma unica vez sem duplicidade de registros.
-
----
-
-### User Story 2 - Tratar falhas e encaminhar para DLQ (Priority: P2)
-
-Como operador da plataforma, quero que mensagens com falha de processamento sejam encaminhadas para DLQ apos tentativas controladas para evitar perda silenciosa de dados.
-
-**Why this priority**: Garante resiliencia operacional e recuperacao segura de erros sem bloquear o fluxo principal.
-
-**Independent Test**: Publicar mensagem invalida e validar que, apos tentativas configuradas, a mensagem e direcionada para DLQ com motivo de falha.
-
-**Acceptance Scenarios**:
-
-1. **Given** uma mensagem invalida, **When** o worker falhar no processamento apos o numero maximo de tentativas, **Then** a mensagem deve ser encaminhada para DLQ com metadados de erro.
-2. **Given** uma falha temporaria de dependencia, **When** houver nova tentativa dentro da politica de retry, **Then** a mensagem deve ser reprocessada antes de ser descartada para DLQ.
+1. **Dado** uma mensagem válida publicada no tópico, **Quando** o worker consumir a mensagem, **Então** os dados devem ser persistidos no banco com confirmação de processamento.
+2. **Dado** várias mensagens válidas, **Quando** o worker consumir em sequência, **Então** cada mensagem deve ser processada uma única vez sem duplicidade de registros.
 
 ---
 
-### User Story 3 - Reprocessar itens da DLQ com seguranca (Priority: P3)
+### História de Usuário 2 - Tratar falhas e encaminhar para DLQ (Prioridade: P2)
 
-Como operador da plataforma, quero iniciar reprocessamento de mensagens da DLQ para recuperar eventos falhos apos correcao de causa raiz.
+Como operador da plataforma, quero que mensagens com falha de processamento sejam encaminhadas para DLQ após tentativas controladas para evitar perda silenciosa de dados.
 
-**Why this priority**: Complementa a operacao com capacidade de recuperacao e reduz trabalho manual em incidentes.
+**Por que esta prioridade**: Garante resiliência operacional e recuperação segura de erros sem bloquear o fluxo principal.
 
-**Independent Test**: Selecionar item da DLQ, solicitar reprocessamento e validar que ele volta ao fluxo, com resultado auditavel de sucesso ou nova falha.
+**Teste Independente**: Publicar mensagem inválida e validar que, após tentativas configuradas, a mensagem é direcionada para DLQ com motivo de falha.
 
-**Acceptance Scenarios**:
+**Cenários de Aceitação**:
 
-1. **Given** mensagens disponiveis na DLQ, **When** o operador solicitar reprocessamento, **Then** cada mensagem selecionada deve ser reenviada para processamento com novo registro de tentativa.
-2. **Given** uma mensagem que falha novamente no reprocessamento, **When** o processamento terminar, **Then** a mensagem deve retornar a DLQ com historico atualizado.
+1. **Dado** uma mensagem inválida, **Quando** o worker falhar no processamento após o número máximo de tentativas, **Então** a mensagem deve ser encaminhada para DLQ com metadados de erro.
+2. **Dado** uma falha temporária de dependência, **Quando** houver nova tentativa dentro da política de retry, **Então** a mensagem deve ser reprocessada antes de ser descartada para DLQ.
 
 ---
 
-### Edge Cases
+### História de Usuário 3 - Reprocessar itens da DLQ com segurança (Prioridade: P3)
+
+Como operador da plataforma, quero iniciar reprocessamento de mensagens da DLQ para recuperar eventos falhos após correção de causa raiz.
+
+**Por que esta prioridade**: Complementa a operação com capacidade de recuperação e reduz trabalho manual em incidentes.
+
+**Teste Independente**: Selecionar item da DLQ, solicitar reprocessamento e validar que ele volta ao fluxo, com resultado auditável de sucesso ou nova falha.
+
+**Cenários de Aceitação**:
+
+1. **Dado** mensagens disponíveis na DLQ, **Quando** o operador solicitar reprocessamento, **Então** cada mensagem selecionada deve ser reenviada para processamento com novo registro de tentativa.
+2. **Dado** uma mensagem que falha novamente no reprocessamento, **Quando** o processamento terminar, **Então** a mensagem deve retornar a DLQ com historico atualizado.
+
+---
+
+### Casos de Fronteira
 
 - Mensagem duplicada recebida mais de uma vez deve manter idempotencia e nao gerar insercao duplicada.
 - Mensagem com schema inesperado deve falhar com motivo claro sem impactar o processamento das demais.
 - Indisponibilidade temporaria do banco deve acionar retry e telemetria de falha sem perda de rastreabilidade.
 - Pico de mensagens acima da taxa nominal deve manter consistencia de processamento, ainda que com aumento controlado de latencia.
 
-## Requirements *(mandatory)*
+## Requisitos *(obrigatório)*
 
-### Functional Requirements
+### Requisitos Funcionais
 
 - **FR-001**: O sistema DEVE consumir mensagens de um topico de mensageria de forma continua, com limite configuravel de concorrencia por instancia (padrao: 10 mensagens em processamento simultaneo) e controle de backpressure quando o lag exceder 1.000 mensagens pendentes.
 - **FR-002**: O sistema DEVE validar a estrutura e os campos obrigatorios da mensagem antes da persistencia.
@@ -75,7 +75,7 @@ Como operador da plataforma, quero iniciar reprocessamento de mensagens da DLQ p
 - **FR-007**: O sistema DEVE permitir acao operacional para reprocessar mensagens da DLQ de forma seletiva.
 - **FR-008**: O sistema DEVE disponibilizar sinalizacao de saude e status de processamento para suporte operacional.
 
-### Non-Functional Requirements
+### Requisitos Não Funcionais
 
 - **NFR-001**: A solucao DEVE manter rastreabilidade ponta a ponta por mensagem, incluindo correlacao entre consumo, persistencia e falhas.
 - **NFR-002**: A solucao DEVE suportar processamento assincrono com cancelamento cooperativo e timeout operacional maximo de 30 segundos por operacao externa.
@@ -83,22 +83,22 @@ Como operador da plataforma, quero iniciar reprocessamento de mensagens da DLQ p
 - **NFR-004**: A solucao DEVE manter confidencialidade de dados sensiveis em logs e trilhas de erro.
 - **NFR-005**: A solucao DEVE manter taxa de sucesso de processamento de mensagens validas de, no minimo, 99%, medida em janelas moveis de 24 horas, com base nas metricas de processamento emitidas pelo worker. Para este requisito, "condicoes operacionais normais" significa indisponibilidade acumulada de dependencias externas inferior a 5 minutos por hora.
 
-### Architectural Constraints
+### Restrições Arquitetônicas
 
 - A implementacao backend DEVE seguir Clean Architecture com separacao entre Worker, Application, Domain, Infra e projeto de testes.
 - O worker DEVE operar de forma assincrona e desacoplada de superficie HTTP para o fluxo principal de consumo.
 - O fluxo assincrono DEVE prever retries e DLQ para falhas de processamento.
 - A persistencia DEVE ser explicita, com consultas paginadas quando aplicavel para operacoes de leitura/listagem.
 
-### Key Entities *(include if feature involves data)*
+### Entidades Chave *(include if feature involves data)*
 
 - **MensagemTopico**: representa a mensagem recebida do topico com identificador unico, payload, timestamp e metadados de correlacao.
 - **RegistroProcessamento**: representa o resultado do processamento da mensagem, incluindo status, tentativas, motivo de falha e referencia de persistencia.
 - **ItemDLQ**: representa a mensagem encaminhada para DLQ com causa da falha, historico de tentativas e estado de reprocessamento.
 
-## Success Criteria *(mandatory)*
+## Critérios de Sucesso *(obrigatório)*
 
-### Measurable Outcomes
+### Resultados Mensuráveis
 
 - **SC-001**: Em condicoes operacionais normais, o p95 do tempo entre consumo e persistencia DEVE ser menor ou igual a 2 segundos, e 95% das mensagens validas DEVE ser processadas e persistidas em ate 60 segundos apos publicacao no topico.
 - **SC-002**: 100% das mensagens com falha nao recuperavel devem ser encaminhadas para DLQ com motivo de erro registrado.
